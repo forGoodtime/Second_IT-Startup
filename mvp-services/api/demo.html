@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BvckZ MVP - Demo</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #2563eb;
+            text-align: center;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+        input, textarea, button, select {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        .success {
+            background: #10b981;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #ef4444;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: white;
+            border: 2px solid #e5e5e5;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+        .card:hover {
+            border-color: #2563eb;
+        }
+        .card.selected {
+            border-color: #2563eb;
+            background: #f0f8ff;
+        }
+        .preview {
+            width: 100%;
+            height: 150px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .center { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .left { background: linear-gradient(135deg, #6b7280, #4b5563); }
+        .right { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌟 BvckZ MVP Demo</h1>
+        <p style="text-align: center;">Тестирование MVP сервиса апсайкла одежды</p>
+        
+        <div id="message"></div>
+
+        <div class="section">
+            <h3>1. Регистрация / Вход</h3>
+            <input type="email" id="email" placeholder="Email" value="test@bvckz.com">
+            <input type="password" id="password" placeholder="Пароль" value="password123">
+            <input type="text" id="fullName" placeholder="Полное имя" value="Test User">
+            
+            <div style="display: flex; gap: 10px;">
+                <button onclick="register()">Регистрация</button>
+                <button onclick="login()">Войти</button>
+                <button onclick="getProfile()">Профиль</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>2. 3D Дизайнер (Демо)</h3>
+            <div class="grid">
+                <div class="card" onclick="selectCard('left')" id="leftCard">
+                    <div class="preview left">Левая сторона</div>
+                    <select id="leftDesign">
+                        <option value="">Без дизайна</option>
+                        <option value="logo">Логотип</option>
+                        <option value="pattern">Узор</option>
+                    </select>
+                </div>
+                
+                <div class="card selected" onclick="selectCard('center')" id="centerCard">
+                    <div class="preview center">Основная футболка</div>
+                    <select id="centerColor">
+                        <option value="blue">Синий</option>
+                        <option value="green">Зелёный</option>
+                        <option value="red">Красный</option>
+                        <option value="black">Чёрный</option>
+                    </select>
+                </div>
+                
+                <div class="card" onclick="selectCard('right')" id="rightCard">
+                    <div class="preview right">Национальный орнамент</div>
+                    <select id="rightPattern">
+                        <option value="">Без орнамента</option>
+                        <option value="kazakh">Казахский</option>
+                        <option value="uzbek">Узбекский</option>
+                        <option value="kyrgyz">Киргизский</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button onclick="saveDesign()">Сохранить дизайн</button>
+        </div>
+
+        <div class="section">
+            <h3>3. Создание заявки</h3>
+            <select id="itemsCount">
+                <option value="3">3-4 футболки</option>
+                <option value="5" selected>5-6 футболок</option>
+                <option value="7">7+ футболок</option>
+            </select>
+            
+            <select id="pickupMethod">
+                <option value="courier">Курьер</option>
+                <option value="drop_point">Пункт приёма</option>
+            </select>
+            
+            <textarea id="pickupAddress" placeholder="Адрес для курьера" rows="3">Алматы, ул. Абая 123, кв. 45</textarea>
+            <textarea id="notes" placeholder="Дополнительные заметки" rows="2">Тестовая заявка через демо</textarea>
+            
+            <div style="display: flex; gap: 10px;">
+                <button onclick="createDonation()">Создать заявку</button>
+                <button onclick="getDonations()">Мои заявки</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>4. Создание заказа</h3>
+            <button onclick="createOrder()">Создать заказ с текущим дизайном</button>
+            <button onclick="getOrders()">Мои заказы</button>
+        </div>
+
+        <div class="section">
+            <h3>📊 Статус системы</h3>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="checkHealth()">Проверить API</button>
+                <button onclick="checkServices()">Проверить сервисы</button>
+            </div>
+            <div id="services-status"></div>
+        </div>
+    </div>
+
+    <script>
+        let authToken = localStorage.getItem('bvckz_token');
+        let selectedCardType = 'center';
+        const API_BASE = 'http://localhost:8000/api';
+        
+        function showMessage(text, isError = false) {
+            const div = document.getElementById('message');
+            div.innerHTML = `<div class="${isError ? 'error' : 'success'}">${text}</div>`;
+            setTimeout(() => div.innerHTML = '', 5000);
+        }
+
+        function selectCard(type) {
+            selectedCardType = type;
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+            document.getElementById(type + 'Card').classList.add('selected');
+        }
+
+        async function register() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const fullName = document.getElementById('fullName').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email, password, full_name: fullName})
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    authToken = data.access_token;
+                    localStorage.setItem('bvckz_token', authToken);
+                    showMessage(`✅ Регистрация успешна! Токен: ${authToken.slice(0, 20)}...`);
+                } else {
+                    showMessage(`❌ Ошибка регистрации: ${data.detail}`, true);
+                }
+            } catch (error) {
+                showMessage(`❌ Ошибка: ${error.message}`, true);
+            }
+        }
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email, password})
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    authToken = data.access_token;
+                    localStorage.setItem('bvckz_token', authToken);
+                    showMessage(`✅ Вход выполнен! Токен: ${authToken.slice(0, 20)}...`);
+                } else {
+                    showMessage(`❌ Ошибка входа: ${data.detail}`, true);
+                }
+            } catch (error) {
+                showMessage(`❌ Ошибка: ${error.message}`, true);
+            }
+        }
+
+        async function getProfile() {
+            if (!authToken) {
+                showMessage('❌ Сначала войдите в систему', true);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/users/me`, {
+                    headers: {'Authorization': `Bearer ${authToken}`}
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    showMessage(`✅ Профиль: ${data.full_name} (${data.email}) - ${data.role || 'user'}`);
+                } else {
+                    showMessage(`❌ Ошибка профиля: ${data.detail}`, true);
+                }
+            } catch (error) {
+                showMessage(`❌ Ошибка: ${error.message}`, true);
+            }
+        }
+
+        async function createDonation() {
+            if (!authToken) {
+                showMessage('❌ Сначала войдите в систему', true);
+                return;
+            }
+            
+            const itemsCount = parseInt(document.getElementById('itemsCount').value);
+            const pickupMethod = document.getElementById('pickupMethod').value;
+            const pickupAddress = document.getElementById('pickupAddress').value;
+            const notes = document.getElementById('notes').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/donations`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        items_count: itemsCount,
+                        pickup_method: pickupMethod,
+                        pickup_address: pickupAddress,
+                        notes
+                    })
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    showMessage(`✅ Заявка создана! ID: ${data.id}, статус: ${data.status}`);
+                } else {
+                    showMessage(`❌ Ошибка создания заявки: ${data.detail}`, true);
+                }
+            } catch (error) {
+                showMessage(`❌ Ошибка: ${error.message}`, true);
+            }
+        }
+
+        async function getDonations() {
+            if (!authToken) {
+                showMessage('❌ Сначала войдите в систему', true);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/donations`, {
+                    headers: {'Authorization': `Bearer ${authToken}`}
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    const donationsText = data.map(d => 
+                        `ID: ${d.id}, статус: ${d.status}, вещей: ${d.items_count}, метод: ${d.pickup_method}`
+                    ).join('<br>');
+                    showMessage(`✅ Ваши заявки:<br>${donationsText || 'Нет заявок'}`);
+                } else {
+                    showMessage(`❌ Ошибка получения заявок: ${data.detail}`, true);
+                }
+            } catch (error) {
+                showMessage(`❌ Ошибка: ${error.message}`, true);
+            }
+        }
+
+        async function saveDesign() {
+            const design = {
+                left: document.getElementById('leftDesign').value,
+                center: { color: document.getElementById('centerColor').value },
+                right: document.getElementById('rightPattern').value
+            };
+            
+            localStorage.setItem('bvckz_design', JSON.stringify(design));
+            
+            // Generate preview via media service
+            if (authToken) {
+                try {
+                    const response = await fetch(`${API_BASE}/media/render`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${authToken}`
+                        },
+                        body: JSON.stringify(JSON.stringify(design))
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        showMessage(`✅ Дизайн сохранён и превью сгенерировано! URL: ${data.preview_url}`);
+                        
+                        // Update visual preview if possible
+                        updateVisualPreview(design);
+                    } else {
+                        showMessage(`✅ Дизайн сохранён локально: ${JSON.stringify(design)}`);
+                    }
+                } catch (error) {
+                    showMessage(`✅ Дизайн сохранён локально: ${JSON.stringify(design)}`);
+                }
+            } else {
+                showMessage(`✅ Дизайн сохранён: ${JSON.stringify(design)}`);
+            }
+        }
+
+        function updateVisualPreview(design) {
+            // Update colors based on design
+            const colors = {
+                'blue': 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                'green': 'linear-gradient(135deg, #22c55e, #16a34a)', 
+                'red': 'linear-gradient(135deg, #ef4444, #dc2626)',
+                'black': 'linear-gradient(135deg, #1f2937, #111827)'
+            };
+            
+            const centerPreview = document.querySelector('#centerCard .preview');
+            if (centerPreview && colors[design.center?.color]) {
+                centerPreview.style.background = colors[design.center.color];
+            }
+        }
+
+        async function createOrder() {
+            if (!authToken) {
+                showMessage('❌ Сначала войдите в систему', true);
+                return;
+            }
+            
+            const design = {
+                left: document.getElementById('leftDesign').value,
+                center: { color: document.getElementById('centerColor').value },
+                right: document.getElementById('rightPattern').value
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/orders`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        design_metadata: JSON.stringify(design)
+                    })
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    showMessage(`✅ Заказ создан! ID: ${data.id}, статус: ${data.status}`);
+                } else {
+                    showMessage(`❌ Ошибка создания заказа: ${data.detail}`, true);
+                }
+            } catch (error) {
+                showMessage(`❌ Ошибка: ${error.message}`, true);
+            }
+        }
+
+        async function getOrders() {
+            if (!authToken) {
+                showMessage('❌ Сначала войдите в систему', true);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/orders`, {
+                    headers: {'Authorization': `Bearer ${authToken}`}
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    const ordersText = data.map(o => 
+                        `ID: ${o.id}, статус: ${o.status}, цена: ${o.total_price/100}₽`
+                    ).join('<br>');
+                    showMessage(`✅ Ваши заказы:<br>${ordersText || 'Нет заказов'}`);
+                } else {
+                    showMessage(`❌ Ошибка получения заказов: ${data.detail}`, true);
+                }
+            } catch (error) {
+                showMessage(`❌ Ошибка: ${error.message}`, true);
+            }
+        }
+
+        async function checkHealth() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                if (response.ok) {
+                    showMessage(`✅ API здоров! Статус: ${data.status}, время: ${data.timestamp}`);
+                } else {
+                    showMessage(`❌ API недоступен`, true);
+                }
+            } catch (error) {
+                showMessage(`❌ Ошибка подключения к API: ${error.message}`, true);
+            }
+        }
+
+        async function checkServices() {
+            const services = [
+                {name: 'API', url: 'http://localhost:8000/api/health'},
+                {name: 'MinIO', url: 'http://localhost:9001'},
+                {name: 'n8n', url: 'http://localhost:5678'},
+                {name: 'Landing', url: 'http://localhost:3000'},
+                {name: 'WebApp', url: 'http://localhost:3001'}
+            ];
+            
+            let status = '<h4>Статус сервисов:</h4>';
+            
+            for (const service of services) {
+                try {
+                    const response = await fetch(service.url);
+                    status += `✅ ${service.name}: Работает<br>`;
+                } catch (error) {
+                    status += `❌ ${service.name}: Недоступен<br>`;
+                }
+            }
+            
+            document.getElementById('services-status').innerHTML = status;
+        }
+
+        // Load saved design on page load
+        window.addEventListener('load', () => {
+            const savedDesign = localStorage.getItem('bvckz_design');
+            if (savedDesign) {
+                const design = JSON.parse(savedDesign);
+                if (design.left) document.getElementById('leftDesign').value = design.left;
+                if (design.center?.color) document.getElementById('centerColor').value = design.center.color;
+                if (design.right) document.getElementById('rightPattern').value = design.right;
+            }
+        });
+    </script>
+</body>
+</html>

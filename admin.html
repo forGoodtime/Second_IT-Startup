@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BvckZ Admin - Панель управления</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            background: #f8fafc;
+        }
+        .header {
+            background: #1e293b;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem 2rem;
+        }
+        .nav button {
+            background: none;
+            border: 1px solid #cbd5e1;
+            padding: 0.5rem 1rem;
+            margin-right: 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .nav button.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        .container {
+            padding: 2rem;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #1e293b;
+        }
+        .stat-label {
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            background: #f8fafc;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        tr:hover {
+            background: #f9fafb;
+        }
+        .status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-paid { background: #d1fae5; color: #065f46; }
+        .status-production { background: #dbeafe; color: #1e40af; }
+        .status-shipped { background: #e0e7ff; color: #3730a3; }
+        .status-completed { background: #dcfce7; color: #166534; }
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+        .btn:hover {
+            background: #2563eb;
+        }
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.show {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+        .alert {
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        .alert-success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+        .alert-error {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌟 BvckZ Admin</h1>
+        <div>
+            <span id="adminName">Admin</span>
+            <button class="btn" onclick="logout()">Выйти</button>
+        </div>
+    </div>
+
+    <div class="nav">
+        <button class="active" onclick="showSection('dashboard')">Дашборд</button>
+        <button onclick="showSection('donations')">Заявки</button>
+        <button onclick="showSection('orders')">Заказы</button>
+        <button onclick="showSection('users')">Пользователи</button>
+        <button onclick="showSection('settings')">Настройки</button>
+    </div>
+
+    <div class="container">
+        <div id="alerts"></div>
+
+        <!-- Dashboard -->
+        <div id="dashboard-section">
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalDonations">-</div>
+                    <div class="stat-label">Всего заявок</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalOrders">-</div>
+                    <div class="stat-label">Всего заказов</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalUsers">-</div>
+                    <div class="stat-label">Всего пользователей</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="pendingDonations">-</div>
+                    <div class="stat-label">Ожидающие заявки</div>
+                </div>
+            </div>
+
+            <h3>Последние заказы</h3>
+            <div class="table-container">
+                <table id="recentOrdersTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Пользователь</th>
+                            <th>Статус</th>
+                            <th>Дата</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="5" style="text-align: center;">Загрузка...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Donations -->
+        <div id="donations-section" style="display: none;">
+            <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 2rem;">
+                <h2>Заявки на сдачу вещей</h2>
+                <button class="btn" onclick="loadDonations()">Обновить</button>
+            </div>
+            <div class="table-container">
+                <table id="donationsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Пользователь</th>
+                            <th>Количество</th>
+                            <th>Метод</th>
+                            <th>Статус</th>
+                            <th>Дата</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="7" style="text-align: center;">Загрузка...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Orders -->
+        <div id="orders-section" style="display: none;">
+            <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 2rem;">
+                <h2>Заказы</h2>
+                <button class="btn" onclick="loadOrders()">Обновить</button>
+            </div>
+            <div class="table-container">
+                <table id="ordersTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Пользователь</th>
+                            <th>Дизайн</th>
+                            <th>Статус</th>
+                            <th>Цена</th>
+                            <th>Дата</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="7" style="text-align: center;">Загрузка...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Users -->
+        <div id="users-section" style="display: none;">
+            <h2>Пользователи</h2>
+            <div class="table-container">
+                <table id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Email</th>
+                            <th>Имя</th>
+                            <th>Роль</th>
+                            <th>Дата регистрации</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="6" style="text-align: center;">Загрузка...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Settings -->
+        <div id="settings-section" style="display: none;">
+            <h2>Настройки системы</h2>
+            <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <h3>Статус сервисов</h3>
+                <div id="servicesStatus">
+                    <button class="btn" onclick="checkAllServices()">Проверить все сервисы</button>
+                    <div id="servicesList" style="margin-top: 1rem;"></div>
+                </div>
+                
+                <h3 style="margin-top: 2rem;">База данных</h3>
+                <button class="btn" onclick="checkDbStatus()">Проверить подключение к БД</button>
+                <div id="dbStatus" style="margin-top: 0.5rem;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Change Modal -->
+    <div id="statusModal" class="modal">
+        <div class="modal-content">
+            <h3>Изменить статус</h3>
+            <div class="form-group">
+                <label>Новый статус:</label>
+                <select id="newStatus">
+                    <option value="pending">В ожидании</option>
+                    <option value="paid">Оплачено</option>
+                    <option value="production">Производство</option>
+                    <option value="shipped">Отправлено</option>
+                    <option value="completed">Завершено</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Комментарий:</label>
+                <textarea id="statusComment" placeholder="Опциональный комментарий" rows="3"></textarea>
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button class="btn" onclick="closeModal()">Отмена</button>
+                <button class="btn" onclick="updateStatus()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let authToken = localStorage.getItem('bvckz_admin_token');
+        let currentSection = 'dashboard';
+        let currentOrderId = null;
+        const API_BASE = 'http://localhost:8000/api';
+
+        // Check authentication on load
+        if (!authToken) {
+            // For demo purposes, create a temp admin token
+            authToken = 'admin_demo_token';
+            localStorage.setItem('bvckz_admin_token', authToken);
+        }
+
+        function showAlert(message, type = 'success') {
+            const alertsDiv = document.getElementById('alerts');
+            alertsDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => {
+                alertsDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('[id$="-section"]').forEach(s => s.style.display = 'none');
+            
+            // Show selected section
+            document.getElementById(section + '-section').style.display = 'block';
+            
+            // Update nav
+            document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            currentSection = section;
+            
+            // Load section data
+            switch(section) {
+                case 'dashboard':
+                    loadDashboard();
+                    break;
+                case 'donations':
+                    loadDonations();
+                    break;
+                case 'orders':
+                    loadOrders();
+                    break;
+                case 'users':
+                    loadUsers();
+                    break;
+            }
+        }
+
+        async function loadDashboard() {
+            try {
+                // Load stats from API
+                const response = await fetch(`${API_BASE}/admin/stats`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const stats = await response.json();
+                    document.getElementById('totalDonations').textContent = stats.total_donations;
+                    document.getElementById('totalOrders').textContent = stats.total_orders;
+                    document.getElementById('totalUsers').textContent = stats.total_users;
+                    document.getElementById('pendingDonations').textContent = stats.pending_donations;
+                } else {
+                    // Fallback to mock data
+                    document.getElementById('totalDonations').textContent = '12';
+                    document.getElementById('totalOrders').textContent = '8';
+                    document.getElementById('totalUsers').textContent = '25';
+                    document.getElementById('pendingDonations').textContent = '3';
+                }
+                
+                // Load recent orders
+                const ordersResponse = await fetch(`${API_BASE}/admin/orders`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const tbody = document.querySelector('#recentOrdersTable tbody');
+                
+                if (ordersResponse.ok) {
+                    const orders = await response.json();
+                    if (orders.length > 0) {
+                        tbody.innerHTML = orders.slice(0, 5).map(order => `
+                            <tr>
+                                <td>#${order.id}</td>
+                                <td>${order.user_email}</td>
+                                <td><span class="status status-${order.status}">${getStatusText(order.status)}</span></td>
+                                <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                                <td><button class="btn btn-sm" onclick="changeOrderStatus(${order.id})">Изменить</button></td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Нет заказов</td></tr>';
+                    }
+                } else {
+                    // Fallback to mock data
+                    tbody.innerHTML = `
+                        <tr>
+                            <td>#001</td>
+                            <td>test@bvckz.com</td>
+                            <td><span class="status status-production">Производство</span></td>
+                            <td>${new Date().toLocaleDateString()}</td>
+                            <td><button class="btn btn-sm" onclick="changeOrderStatus(1)">Изменить</button></td>
+                        </tr>
+                    `;
+                }
+                
+            } catch (error) {
+                console.error('Dashboard load error:', error);
+                showAlert('Ошибка загрузки дашборда: ' + error.message, 'error');
+                // Show mock data on error
+                document.getElementById('totalDonations').textContent = '12';
+                document.getElementById('totalOrders').textContent = '8';
+                document.getElementById('totalUsers').textContent = '25';
+                document.getElementById('pendingDonations').textContent = '3';
+            }
+        }
+
+        function getStatusText(status) {
+            const statusMap = {
+                'pending': 'Ожидание',
+                'paid': 'Оплачено',
+                'production': 'Производство',
+                'shipped': 'Отправлено',
+                'completed': 'Завершено',
+                'collected': 'Собрано',
+                'processing': 'Обработка'
+            };
+            return statusMap[status] || status;
+        }
+
+        async function loadDonations() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/donations`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const tbody = document.querySelector('#donationsTable tbody');
+                
+                if (response.ok) {
+                    const donations = await response.json();
+                    if (donations.length > 0) {
+                        tbody.innerHTML = donations.map(donation => `
+                            <tr>
+                                <td>${donation.id}</td>
+                                <td>${donation.user_email}</td>
+                                <td>${donation.item_count} вещей</td>
+                                <td>${donation.pickup_method || 'Не указан'}</td>
+                                <td><span class="status status-${donation.status}">${getStatusText(donation.status)}</span></td>
+                                <td>${new Date(donation.created_at).toLocaleDateString()}</td>
+                                <td><button class="btn btn-sm" onclick="changeDonationStatus(${donation.id})">Изменить</button></td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Нет заявок</td></tr>';
+                    }
+                } else {
+                    throw new Error('Ошибка загрузки');
+                }
+            } catch (error) {
+                console.error('Donations load error:', error);
+                const tbody = document.querySelector('#donationsTable tbody');
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Ошибка загрузки заявок</td></tr>';
+                showAlert('Ошибка загрузки заявок: ' + error.message, 'error');
+            }
+        }
+
+        async function loadOrders() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/orders`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const tbody = document.querySelector('#ordersTable tbody');
+                
+                if (response.ok) {
+                    const orders = await response.json();
+                    if (orders.length > 0) {
+                        tbody.innerHTML = orders.map(order => `
+                            <tr>
+                                <td>${order.id}</td>
+                                <td>${order.user_email}</td>
+                                <td>${order.design}</td>
+                                <td><span class="status status-${order.status}">${getStatusText(order.status)}</span></td>
+                                <td>${order.price} ₽</td>
+                                <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                                <td><button class="btn btn-sm" onclick="changeOrderStatus(${order.id})">Изменить</button></td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Нет заказов</td></tr>';
+                    }
+                } else {
+                    throw new Error('Ошибка загрузки');
+                }
+            } catch (error) {
+                console.error('Orders load error:', error);
+                const tbody = document.querySelector('#ordersTable tbody');
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Ошибка загрузки заказов</td></tr>';
+                showAlert('Ошибка загрузки заказов: ' + error.message, 'error');
+            }
+        }
+
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/users`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const tbody = document.querySelector('#usersTable tbody');
+                
+                if (response.ok) {
+                    const users = await response.json();
+                    if (users.length > 0) {
+                        tbody.innerHTML = users.map(user => `
+                            <tr>
+                                <td>${user.id}</td>
+                                <td>${user.email}</td>
+                                <td>${user.full_name || 'Не указано'}</td>
+                                <td><span class="status ${user.role === 'admin' ? 'status-paid' : 'status-pending'}">${user.role}</span></td>
+                                <td>${new Date(user.created_at).toLocaleDateString()}</td>
+                                <td><button class="btn btn-sm">Редактировать</button></td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Нет пользователей</td></tr>';
+                    }
+                } else {
+                    throw new Error('Ошибка загрузки');
+                }
+            } catch (error) {
+                console.error('Users load error:', error);
+                const tbody = document.querySelector('#usersTable tbody');
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Ошибка загрузки пользователей</td></tr>';
+                showAlert('Ошибка загрузки пользователей: ' + error.message, 'error');
+            }
+        }
+
+        function changeOrderStatus(orderId) {
+            currentOrderId = orderId;
+            document.getElementById('statusModal').classList.add('show');
+        }
+
+        function changeDonationStatus(donationId) {
+            // Similar to order status change
+            changeOrderStatus(donationId);
+        }
+
+        function closeModal() {
+            document.getElementById('statusModal').classList.remove('show');
+            currentOrderId = null;
+        }
+
+        async function updateStatus() {
+            const newStatus = document.getElementById('newStatus').value;
+            const comment = document.getElementById('statusComment').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/orders/${currentOrderId}/status`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        status: newStatus,
+                        comment: comment
+                    })
+                });
+                
+                if (response.ok) {
+                    showAlert(`Статус заказа #${currentOrderId} изменён на "${getStatusText(newStatus)}"`);
+                    closeModal();
+                    
+                    // Reload current section
+                    showSection(currentSection);
+                } else {
+                    throw new Error('Ошибка обновления статуса');
+                }
+            } catch (error) {
+                console.error('Status update error:', error);
+                showAlert('Ошибка обновления статуса: ' + error.message, 'error');
+            }
+        }
+
+        async function checkAllServices() {
+            const servicesList = document.getElementById('servicesList');
+            servicesList.innerHTML = '<p>Проверяем сервисы...</p>';
+            
+            const services = [
+                {name: 'API', url: 'http://localhost:8000/api/health'},
+                {name: 'Media Service', url: 'http://localhost:8001/health'},
+                {name: 'MinIO', url: 'http://localhost:9001'},
+                {name: 'n8n', url: 'http://localhost:5678'},
+            ];
+            
+            let html = '<ul>';
+            for (const service of services) {
+                try {
+                    const response = await fetch(service.url);
+                    const status = response.ok ? '✅ Работает' : '❌ Недоступен';
+                    html += `<li><strong>${service.name}:</strong> ${status}</li>`;
+                } catch (error) {
+                    html += `<li><strong>${service.name}:</strong> ❌ Недоступен</li>`;
+                }
+            }
+            html += '</ul>';
+            servicesList.innerHTML = html;
+        }
+
+        async function checkDbStatus() {
+            const dbStatus = document.getElementById('dbStatus');
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                if (response.ok) {
+                    dbStatus.innerHTML = '✅ База данных работает нормально';
+                } else {
+                    dbStatus.innerHTML = '❌ Ошибка подключения к базе данных';
+                }
+            } catch (error) {
+                dbStatus.innerHTML = '❌ API недоступен';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('bvckz_admin_token');
+            location.reload();
+        }
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            loadDashboard();
+        });
+    </script>
+</body>
+</html>
